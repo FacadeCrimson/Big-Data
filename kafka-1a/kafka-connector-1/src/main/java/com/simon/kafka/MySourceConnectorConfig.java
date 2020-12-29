@@ -44,6 +44,14 @@ public class MySourceConnectorConfig extends AbstractConfig {
       return this.getString(TOPIC_CONFIG);
   }
 
+  public String getLat() {
+    return this.getString(LAT_CONFIG);
+  }
+
+  public String getLon() {
+    return this.getString(LON_CONFIG);
+  }
+
   public String getAPIKey() {
       return this.getString(API_KEY_CONFIG);
   }
