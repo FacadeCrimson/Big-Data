@@ -7,11 +7,22 @@ import org.apache.kafka.common.config.ConfigDef.Importance;
 
 import java.util.Map;
 
+import com.simon.kafka.validators.*;
 
 public class MySourceConnectorConfig extends AbstractConfig {
 
-  public static final String MY_SETTING_CONFIG = "my.setting";
-  private static final String MY_SETTING_DOC = "This is a setting important to my connector.";
+  
+  public static final String TOPIC_CONFIG = "topic";
+  private static final String TOPIC_DOC = "Topic to write to";
+
+  public static final String LON_CONFIG = "longitude";
+  private static final String LON_DOC = "The longitude of target place.";
+
+  public static final String LAT_CONFIG = "latitude";
+  private static final String LAT_DOC = "The latitude of target place.";
+
+  public static final String API_KEY_CONFIG = "api.key";
+  private static final String API_KEY_DOC = "Your API key for makeing the calls.";
 
   public MySourceConnectorConfig(ConfigDef config, Map<String, String> parsedConfig) {
     super(config, parsedConfig);
@@ -23,10 +34,17 @@ public class MySourceConnectorConfig extends AbstractConfig {
 
   public static ConfigDef conf() {
     return new ConfigDef()
-        .define(MY_SETTING_CONFIG, Type.STRING, Importance.HIGH, MY_SETTING_DOC);
+            .define(TOPIC_CONFIG, Type.STRING, Importance.HIGH, TOPIC_DOC)
+            .define(LON_CONFIG, Type.INT, new LatLonValidator(), Importance.HIGH, LON_DOC)
+            .define(LAT_CONFIG, Type.STRING, new LatLonValidator(), Importance.HIGH, LAT_DOC)
+            .define(API_KEY_CONFIG, Type.STRING, Importance.HIGH, API_KEY_DOC);
   }
 
-  public String getMy(){
-    return this.getString(MY_SETTING_CONFIG);
+  public String getTopic() {
+      return this.getString(TOPIC_CONFIG);
+  }
+
+  public String getAPIKey() {
+      return this.getString(API_KEY_CONFIG);
   }
 }
