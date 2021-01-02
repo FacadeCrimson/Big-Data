@@ -1,12 +1,15 @@
 package com.simon.kafka.model;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import static com.simon.kafka.CurrentWeatherSchemas.*;
 
+import java.util.ArrayList;
+
 public class CurrentWeather {
-    
-    private static class Coord{
+
+    public static class Coord{
         private Integer lon;
         private Integer lat;
 
@@ -15,7 +18,7 @@ public class CurrentWeather {
             this.lat=jsonObject.getInt(LAT_FIELD);
         }
     }
-    private static class Weather{
+    public static class Weather{
         private Integer id;
         private String main;
         private String description;
@@ -27,6 +30,11 @@ public class CurrentWeather {
             this.description=jsonObject.getString(WEATHER_DESCRIPTION_FIELD);
             this.icon=jsonObject.getString(WEATHER_ICON_FIELD);
         }
+
+        public Integer getId(){return this.id;}
+        public String getMain(){return this.main;}
+        public String getDescription(){return this.description;}
+        public String getIcon(){return this.icon;}
     }
     private static class Main{
         private Integer temp;
@@ -77,7 +85,7 @@ public class CurrentWeather {
         }
     }
     private Coord coord;
-    private Weather weather;
+    public ArrayList<Weather> weathers = new ArrayList<Weather>();
     private String base;
     private Main main;
     private Integer visibility;
@@ -188,6 +196,23 @@ public class CurrentWeather {
         return this;
     }
 
+    public Integer getLon(){return this.coord.lon;}
+    public Integer getLat(){return this.coord.lat;}
+    public Integer getTemp(){return this.main.temp;}
+    public Integer getFeelsLike(){return this.main.feels_like;}
+    public Integer getTempMin(){return this.main.temp_min;}
+    public Integer getTempMax(){return this.main.temp_max;}
+    public Integer getPressure(){return this.main.pressure;}
+    public Integer getHumidity(){return this.main.humidity;}
+    public Integer getSpeed(){return this.wind.speed;}
+    public Integer getDeg(){return this.wind.deg;};
+    public Integer getAll(){return this.clouds.all;}
+    public Integer getSysType(){return this.sys.type;}
+    public Integer getSysId(){return this.sys.id;}
+    public String getSysCountry(){return this.sys.country;}
+    public Integer getSysSunrise(){return this.sys.sunrise;}
+    public Integer getSysSunset(){return this.sys.sunset;}
+    
     public static CurrentWeather fromJson(JSONObject jsonObject) {
 
         CurrentWeather currentweather = new CurrentWeather();
@@ -200,7 +225,11 @@ public class CurrentWeather {
         currentweather.withVisibility(jsonObject.getInt(VISIBILITY_FIELD));
 
         currentweather.coord = new Coord(jsonObject.getJSONObject(COORD_FIELD));
-        currentweather.weather = new Weather(jsonObject.getJSONObject(WEATHER_FIELD));
+        JSONArray newarray = jsonObject.getJSONArray(WEATHER_FIELD);
+        for (int i = 0; i < newarray.length(); i++) {
+            JSONObject newobject = newarray.getJSONObject(i);
+            currentweather.weathers.add(new Weather(newobject));
+          }
         currentweather.main = new Main(jsonObject.getJSONObject(MAIN_FIELD));
         currentweather.wind = new Wind(jsonObject.getJSONObject(WIND_FIELD));
         currentweather.clouds = new Clouds(jsonObject.getJSONObject(CLOUDS_FIELD));

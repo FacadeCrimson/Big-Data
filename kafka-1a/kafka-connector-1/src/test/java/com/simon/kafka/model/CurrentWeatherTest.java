@@ -2,7 +2,6 @@ package com.simon.kafka.model;
 
 import org.json.JSONObject;
 
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 public class CurrentWeatherTest {

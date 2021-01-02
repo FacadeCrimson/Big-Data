@@ -33,6 +33,7 @@ public class MySourceConnector extends SourceConnector {
   public List<Map<String, String>> taskConfigs(int i) {      
     ArrayList<Map<String, String>> configs = new ArrayList<>(1);
     configs.add(config.originalsStrings());
+    log.info("Successfully added configurations.");
     return configs;
   }
 

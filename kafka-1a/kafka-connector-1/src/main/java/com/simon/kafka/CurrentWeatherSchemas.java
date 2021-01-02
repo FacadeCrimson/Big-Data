@@ -106,7 +106,7 @@ public class CurrentWeatherSchemas {
             .field(SYS_ID_FIELD, Schema.INT32_SCHEMA)
             .field(SYS_COUNTRY_FIELD, Schema.STRING_SCHEMA)
             .field(SYS_SUNRISE_FIELD, Schema.INT32_SCHEMA)
-            .field(SYS_SUNSET_FIELD , Schema.INT32_SCHEMA)
+            .field(SYS_SUNSET_FIELD, Schema.INT32_SCHEMA)
             .build();
 
     public static Schema VALUE_SCHEMA = SchemaBuilder.struct().name(SCHEMA_VALUE)
