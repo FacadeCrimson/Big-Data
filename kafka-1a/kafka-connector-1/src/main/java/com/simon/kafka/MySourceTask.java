@@ -15,9 +15,6 @@ import static com.simon.kafka.CurrentWeatherSchemas.*;
 public class MySourceTask extends SourceTask {
     private static final Logger log = LoggerFactory.getLogger(MySourceTask.class);
     public MySourceConnectorConfig config;
-
-    protected Integer dt;
-
     APIHttpClient apihttpclient;
 
     @Override
@@ -34,22 +31,21 @@ public class MySourceTask extends SourceTask {
 
     @Override
     public List<SourceRecord> poll() throws InterruptedException {
-        apihttpclient.sleepIfNeed();
-
+        // apihttpclient.sleepIfNeed();
+        Thread.sleep(1000);
         // fetch data
         JSONObject jsonobject = apihttpclient.getCurrentWeather();
         // we'll count how many results we get with i
         CurrentWeather currentweather = CurrentWeather.fromJson((JSONObject) jsonobject);
         SourceRecord sourceRecord = generateSourceRecord(currentweather);
-        dt = currentweather.getDt();
-        apihttpclient.sleep();
+        // apihttpclient.sleep();
         return Arrays.asList(sourceRecord);
     }
 
     private SourceRecord generateSourceRecord(CurrentWeather currentweather) {
         return new SourceRecord(
                 sourcePartition(),
-                sourceOffset(),
+                sourceOffset(currentweather),
                 config.getTopic(),
                 null, // partition will be inferred by the framework
                 KEY_SCHEMA,
@@ -64,16 +60,16 @@ public class MySourceTask extends SourceTask {
         // Do whatever is required to stop your task.
     }
 
-    private Map<String, String> sourcePartition() {
-        Map<String, String> map = new HashMap<>();
+    private Map<String, Double> sourcePartition() {
+        Map<String, Double> map = new HashMap<>();
         map.put(LAT_FIELD, config.getLat());
         map.put(LON_FIELD, config.getLon());
         return map;
     }
 
-    private Map<String, String> sourceOffset() {
+    private Map<String, String> sourceOffset(CurrentWeather currentweather) {
         Map<String, String> map = new HashMap<>();
-        map.put(DT_FIELD, dt.toString());
+        map.put(DT_FIELD, currentweather.getDt().toString());
         return map;
     }
 
@@ -82,7 +78,7 @@ public class MySourceTask extends SourceTask {
         Struct key = new Struct(KEY_SCHEMA)
                 .put(LAT_FIELD, config.getLat())
                 .put(LON_FIELD, config.getLon())
-                .put("current time", Instant.now().toString());
+                .put(DT_FIELD, currentweather.getDt());
         return key;
     }
 

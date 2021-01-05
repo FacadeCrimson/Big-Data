@@ -57,16 +57,19 @@ public class CurrentWeatherSchemas {
     public static String SCHEMA_VALUE_CLOUDS = "clouds";
     public static String SCHEMA_VALUE_SYS= "sys";
 
+    public static String TIME_FIELD= "time";
+
     public static Schema KEY_SCHEMA = SchemaBuilder.struct().name(SCHEMA_KEY)
             .version(1)
-            .field(LON_FIELD, Schema.INT32_SCHEMA)
-            .field(LAT_FIELD, Schema.INT32_SCHEMA)
+            .field(LON_FIELD, Schema.FLOAT64_SCHEMA)
+            .field(LAT_FIELD, Schema.FLOAT64_SCHEMA)
+            .field(DT_FIELD, Schema.INT32_SCHEMA)
             .build();
     
     public static Schema COORD_SCHEMA = SchemaBuilder.struct().name(SCHEMA_VALUE_COORD)
             .version(1)
-            .field(LON_FIELD, Schema.INT32_SCHEMA)
-            .field(LAT_FIELD, Schema.INT32_SCHEMA)
+            .field(LON_FIELD, Schema.FLOAT64_SCHEMA)
+            .field(LAT_FIELD, Schema.FLOAT64_SCHEMA)
             .build();
 
     public static Schema WEATHER_SCHEMA = SchemaBuilder.struct().name(SCHEMA_VALUE_WEATHER)
@@ -81,17 +84,17 @@ public class CurrentWeatherSchemas {
     
      public static Schema MAIN_SCHEMA = SchemaBuilder.struct().name(SCHEMA_VALUE_MAIN)
             .version(1)
-            .field(TEMP_FIELD, Schema.INT32_SCHEMA)
-            .field(FEELS_LIKE_FIELD, Schema.INT32_SCHEMA)
-            .field(TEMP_MIN_FIELD, Schema.INT32_SCHEMA)
-            .field(TEMP_MAX_FIELD, Schema.INT32_SCHEMA)
+            .field(TEMP_FIELD, Schema.FLOAT64_SCHEMA)
+            .field(FEELS_LIKE_FIELD, Schema.FLOAT64_SCHEMA)
+            .field(TEMP_MIN_FIELD, Schema.FLOAT64_SCHEMA)
+            .field(TEMP_MAX_FIELD, Schema.FLOAT64_SCHEMA)
             .field(PRESSURE_FIELD, Schema.INT32_SCHEMA)
             .field(HUMIDITY_FIELD, Schema.INT32_SCHEMA)
             .build();
     
     public static Schema WIND_SCHEMA = SchemaBuilder.struct().name(SCHEMA_VALUE_WIND)
             .version(1)
-            .field(WIND_SPEED_FIELD, Schema.INT32_SCHEMA)
+            .field(WIND_SPEED_FIELD, Schema.FLOAT64_SCHEMA)
             .field(WIND_DEG_FIELD, Schema.INT32_SCHEMA)
             .build();
 
@@ -102,9 +105,9 @@ public class CurrentWeatherSchemas {
 
     public static Schema SYS_SCHEMA = SchemaBuilder.struct().name(SCHEMA_VALUE_SYS)
             .version(1)
-            .field(SYS_TYPE_FIELD, Schema.INT32_SCHEMA)
-            .field(SYS_ID_FIELD, Schema.INT32_SCHEMA)
-            .field(SYS_COUNTRY_FIELD, Schema.STRING_SCHEMA)
+            .field(SYS_TYPE_FIELD, Schema.OPTIONAL_INT32_SCHEMA)
+            .field(SYS_ID_FIELD, Schema.OPTIONAL_INT32_SCHEMA)
+            .field(SYS_COUNTRY_FIELD, Schema.OPTIONAL_STRING_SCHEMA)
             .field(SYS_SUNRISE_FIELD, Schema.INT32_SCHEMA)
             .field(SYS_SUNSET_FIELD, Schema.INT32_SCHEMA)
             .build();
@@ -115,7 +118,7 @@ public class CurrentWeatherSchemas {
             .field(WEATHER_FIELD,WEATHER_ARRAY_SCHEMA)
             .field(BASE_FIELD, Schema.STRING_SCHEMA)
             .field(MAIN_FIELD, MAIN_SCHEMA)
-            .field(VISIBILITY_FIELD, Schema.STRING_SCHEMA)
+            .field(VISIBILITY_FIELD, Schema.INT32_SCHEMA)
             .field(WIND_FIELD,WIND_SCHEMA)
             .field(CLOUDS_FIELD,CLOUDS_SCHEMA)
             .field(DT_FIELD,Schema.INT32_SCHEMA)

@@ -35,8 +35,8 @@ public class MySourceConnectorConfig extends AbstractConfig {
   public static ConfigDef conf() {
     return new ConfigDef()
             .define(TOPIC_CONFIG, Type.STRING, Importance.HIGH, TOPIC_DOC)
-            .define(LON_CONFIG, Type.INT, new LatLonValidator(), Importance.HIGH, LON_DOC)
-            .define(LAT_CONFIG, Type.STRING, new LatLonValidator(), Importance.HIGH, LAT_DOC)
+            .define(LON_CONFIG, Type.DOUBLE, -77.0506, new LatLonValidator(), Importance.HIGH, LON_DOC)
+            .define(LAT_CONFIG, Type.DOUBLE, 38.8892, new LatLonValidator(), Importance.HIGH, LAT_DOC)
             .define(API_KEY_CONFIG, Type.STRING, Importance.HIGH, API_KEY_DOC);
   }
 
@@ -44,12 +44,12 @@ public class MySourceConnectorConfig extends AbstractConfig {
       return this.getString(TOPIC_CONFIG);
   }
 
-  public String getLat() {
-    return this.getString(LAT_CONFIG);
+  public Double getLat() {
+    return this.getDouble(LAT_CONFIG);
   }
 
-  public String getLon() {
-    return this.getString(LON_CONFIG);
+  public Double getLon() {
+    return this.getDouble(LON_CONFIG);
   }
 
   public String getAPIKey() {

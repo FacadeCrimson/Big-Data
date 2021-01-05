@@ -10,12 +10,12 @@ import java.util.ArrayList;
 public class CurrentWeather {
 
     public static class Coord{
-        private Integer lon;
-        private Integer lat;
+        private Double lon;
+        private Double lat;
 
         public Coord(JSONObject jsonObject) {
-            this.lon=jsonObject.getInt(LON_FIELD);
-            this.lat=jsonObject.getInt(LAT_FIELD);
+            this.lon=jsonObject.getDouble(LON_FIELD);
+            this.lat=jsonObject.getDouble(LAT_FIELD);
         }
     }
     public static class Weather{
@@ -37,28 +37,28 @@ public class CurrentWeather {
         public String getIcon(){return this.icon;}
     }
     private static class Main{
-        private Integer temp;
-        private Integer feels_like;
-        private Integer temp_min;
-        private Integer temp_max;
+        private Double temp;
+        private Double feels_like;
+        private Double temp_min;
+        private Double temp_max;
         private Integer pressure;
         private Integer humidity;
 
         public Main(JSONObject jsonObject) {
-            this.temp=jsonObject.getInt(TEMP_FIELD);
-            this.feels_like=jsonObject.getInt(FEELS_LIKE_FIELD);
-            this.temp_min=jsonObject.getInt(TEMP_MIN_FIELD);
-            this.temp_max=jsonObject.getInt(TEMP_MAX_FIELD);
+            this.temp=jsonObject.getDouble(TEMP_FIELD);
+            this.feels_like=jsonObject.getDouble(FEELS_LIKE_FIELD);
+            this.temp_min=jsonObject.getDouble(TEMP_MIN_FIELD);
+            this.temp_max=jsonObject.getDouble(TEMP_MAX_FIELD);
             this.pressure=jsonObject.getInt(PRESSURE_FIELD);
             this.humidity=jsonObject.getInt(HUMIDITY_FIELD);
         }
     }
     private static class Wind{
-        private Integer speed;
+        private Double speed;
         private Integer deg;
 
         public Wind(JSONObject jsonObject) {
-            this.speed=jsonObject.getInt(WIND_SPEED_FIELD);
+            this.speed=jsonObject.getDouble(WIND_SPEED_FIELD);
             this.deg=jsonObject.getInt(WIND_DEG_FIELD);
         }
     }
@@ -77,9 +77,15 @@ public class CurrentWeather {
         private Integer sunset;
 
         public Sys(JSONObject jsonObject) {
-            this.type=jsonObject.getInt(SYS_TYPE_FIELD);
-            this.id=jsonObject.getInt(SYS_ID_FIELD);
-            this.country=jsonObject.getString(SYS_COUNTRY_FIELD);
+            if(jsonObject.has(SYS_TYPE_FIELD)){
+                this.type=jsonObject.getInt(SYS_TYPE_FIELD);
+            }
+            if(jsonObject.has(SYS_ID_FIELD)){
+                this.id=jsonObject.getInt(SYS_ID_FIELD);
+            }
+            if(jsonObject.has(SYS_COUNTRY_FIELD)){
+                this.country=jsonObject.getString(SYS_COUNTRY_FIELD);
+            }
             this.sunrise=jsonObject.getInt(SYS_SUNRISE_FIELD);
             this.sunset=jsonObject.getInt(SYS_SUNSET_FIELD);
         }
@@ -196,15 +202,15 @@ public class CurrentWeather {
         return this;
     }
 
-    public Integer getLon(){return this.coord.lon;}
-    public Integer getLat(){return this.coord.lat;}
-    public Integer getTemp(){return this.main.temp;}
-    public Integer getFeelsLike(){return this.main.feels_like;}
-    public Integer getTempMin(){return this.main.temp_min;}
-    public Integer getTempMax(){return this.main.temp_max;}
+    public Double getLon(){return this.coord.lon;}
+    public Double getLat(){return this.coord.lat;}
+    public Double getTemp(){return this.main.temp;}
+    public Double getFeelsLike(){return this.main.feels_like;}
+    public Double getTempMin(){return this.main.temp_min;}
+    public Double getTempMax(){return this.main.temp_max;}
     public Integer getPressure(){return this.main.pressure;}
     public Integer getHumidity(){return this.main.humidity;}
-    public Integer getSpeed(){return this.wind.speed;}
+    public Double getSpeed(){return this.wind.speed;}
     public Integer getDeg(){return this.wind.deg;};
     public Integer getAll(){return this.clouds.all;}
     public Integer getSysType(){return this.sys.type;}
