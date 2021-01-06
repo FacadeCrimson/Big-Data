@@ -1,9 +1,5 @@
-Welcome to your new Kafka Connect connector!
+### Description
 
-# Running in development
+This is a Kafka Source Connector to connect to OpenWeatherMap's current weather API.
 
-```
-mvn clean package
-export CLASSPATH="$(find target/ -type f -name '*.jar'| grep '\-package' | tr '\n' ':')"
-$CONFLUENT_HOME/bin/connect-standalone $CONFLUENT_HOME/etc/schema-registry/connect-avro-standalone.properties config/MySourceConnector.properties
-```
+The configs users should provide include the topic to write to, the api key, and the latitude, longitude of the target location.
