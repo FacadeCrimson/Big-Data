@@ -40,9 +40,8 @@ public final class App {
     }
     public static void main(String[] args) 
     {
-        CountDownLatch latch = new CountDownLatch(8);
-        logger.info("Creating the threads");
-
+        CountDownLatch latch = new CountDownLatch(NUM_THREADS);
+        logger.info("Creating new threads.");
         ArrayList<CrawlerThread> threads = new ArrayList<CrawlerThread>(NUM_THREADS);
         for (int i=0; i<NUM_THREADS; i++) 
         {   
@@ -52,14 +51,14 @@ public final class App {
             demoThread.start(); 
         } 
 
-        Runtime.getRuntime().addShutdownHook(new Thread(
-            () -> {logger.info("Caught shutdown hook");
-            for(CrawlerThread runnable : threads){
-                    runnable.shutdown();
-            }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.info("Caught shutdown hook.");
             try{
-                latch.await();
-            }catch(InterruptedException e){
+                for(CrawlerThread runnable : threads){
+                    runnable.shutdown();
+                }
+                logger.info("All threads have been shut down.");
+            }catch(Exception e){
                 e.printStackTrace();
             }finally{
                 logger.info("Application has exited.");
