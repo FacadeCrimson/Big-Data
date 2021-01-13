@@ -10,14 +10,21 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
 
+import com.simon.crawler.IndeedPlugin;
+
 public class Crawler extends WebCrawler{
+    private final static Logger logger = LoggerFactory.getLogger(Crawler.class.getName());
     private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|gif|jpg|png|mp3|mp3|zip|gz))$");
+    private final static String STORAGE = System.getenv("storage");
+    private final static String PREFIX = System.getenv("prefix");
 
     /**
     * This method receives two parameters. The first parameter is the page
@@ -33,7 +40,7 @@ public class Crawler extends WebCrawler{
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
         return !FILTERS.matcher(href).matches()
-        && href.startsWith("https://film.avclub.com/the-best-films-of-the-00s-1798222348");
+        && href.startsWith(PREFIX);
     }
 
     /**
@@ -43,7 +50,7 @@ public class Crawler extends WebCrawler{
     @Override
     public void visit(Page page) {
         String url = page.getWebURL().getURL();
-        System.out.println("URL: " + url);
+        logger.info("URL: " + url);
 
         if (page.getParseData() instanceof HtmlParseData) {
             HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
@@ -54,15 +61,14 @@ public class Crawler extends WebCrawler{
             System.out.println("Number of outgoing links: " + links.size());
 
             Document doc= Jsoup.parse(html);
-            Elements content=doc.getElementsByClass("r43lxo-0 gqfcxx js_post-content");
-            if (content.size()==0){
-                return;
-            }
-
+            
             try{
-                FileWriter output = new FileWriter("/Users/apple/Desktop/data/output_"+Base64.getEncoder().encodeToString(url.getBytes("utf-8"))+".txt");
-                for (Element element: content) {
-                    output.write(element.text()+"\n");
+                String fileName = "output_"+Base64.getEncoder().encodeToString(url.getBytes("utf-8"))+".txt";
+                FileWriter output = new FileWriter(STORAGE+fileName);
+                Elements cards = doc.getElementsByClass("jobsearch-SerpJobCard unifiedRow row result");
+                for(Element card : cards){
+                    output.write(card.text());
+                    output.write("\n");
                 }
                 output.close();
             }catch(IOException e){
