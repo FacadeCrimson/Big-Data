@@ -8,6 +8,7 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class Controller {
     private static final Integer NUMBER_OF_CRAWLERS = 1;
+    private static final Integer DEPTH = 1;
     private static final Integer POLITENESS_DELAY = 1000;
     private static final String CRAWL_STORAGE = System.getenv("storage");
     private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36";
@@ -18,6 +19,7 @@ public class Controller {
         config.setPolitenessDelay(POLITENESS_DELAY);
         config.setCrawlStorageFolder(CRAWL_STORAGE);
         config.setUserAgentString(USER_AGENT);
+        config.setMaxDepthOfCrawling(DEPTH);
         // config.setIncludeBinaryContentInCrawling(true);
  
         /*

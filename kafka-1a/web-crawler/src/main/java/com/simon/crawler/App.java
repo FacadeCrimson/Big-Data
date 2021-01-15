@@ -6,9 +6,6 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Hello world!
- */
 public final class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class.getName());
     private static final Integer NUM_THREADS = 6;

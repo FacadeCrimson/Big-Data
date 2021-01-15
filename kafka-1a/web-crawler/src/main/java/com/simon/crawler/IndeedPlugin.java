@@ -15,6 +15,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class IndeedPlugin {
+    private static final String TOPIC = "post";
 
     public static void process(String html){
         Document doc= Jsoup.parse(html);
@@ -25,6 +26,7 @@ public class IndeedPlugin {
         for(Element card : cards){
             producer.send(newPost(card));
         }
+        producer.close();
     }
 
     public static KafkaProducer<String, String>  createProducer(){
@@ -47,9 +49,25 @@ public class IndeedPlugin {
     
 
     public static ProducerRecord<String, String> newPost(Element card) {
-        // creates an empty json {}
-        ObjectNode transaction = JsonNodeFactory.instance.objectNode();
+        ObjectNode post = JsonNodeFactory.instance.objectNode();
+        post.put("id",card.attr("data-jk"));
 
-        return new ProducerRecord<>("post", "id", transaction.toString());
+        Element title = card.getElementsByClass("title").first().getElementsByTag("a").first();
+        post.put("title",title.attr("title"));
+        post.put("link",title.attr("href"));
+
+        Element company = card.getElementsByClass("company").first();
+        post.put("company",company.text());
+
+        Element loc = card.getElementsByClass("location accessible-contrast-color-location").first();
+        post.put("location",loc.text());
+
+        Element summary = card.getElementsByClass("summary").first();
+        post.put("summary",summary.text());
+
+        Element date = card.getElementsByClass("date").first();
+        post.put("date",date.text());
+
+        return new ProducerRecord<>(TOPIC, card.attr("data-jk"), post.toString());
     }
 }

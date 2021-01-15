@@ -1,15 +1,8 @@
 package com.simon.crawler;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Base64;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,12 +11,9 @@ import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
 
-import com.simon.crawler.IndeedPlugin;
-
 public class Crawler extends WebCrawler{
     private final static Logger logger = LoggerFactory.getLogger(Crawler.class.getName());
     private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|gif|jpg|png|mp3|mp3|zip|gz))$");
-    private final static String STORAGE = System.getenv("storage");
     private final static String PREFIX = System.getenv("prefix");
 
     /**
@@ -60,20 +50,40 @@ public class Crawler extends WebCrawler{
             System.out.println("Html length: " + html.length());
             System.out.println("Number of outgoing links: " + links.size());
 
-            Document doc= Jsoup.parse(html);
+            IndeedPlugin.process(html);
+            // Document doc= Jsoup.parse(html);
             
-            try{
-                String fileName = "output_"+Base64.getEncoder().encodeToString(url.getBytes("utf-8"))+".txt";
-                FileWriter output = new FileWriter(STORAGE+fileName);
-                Elements cards = doc.getElementsByClass("jobsearch-SerpJobCard unifiedRow row result");
-                for(Element card : cards){
-                    output.write(card.text());
-                    output.write("\n");
-                }
-                output.close();
-            }catch(IOException e){
-                e.printStackTrace();
-            }
+            // try{
+            //     String fileName = "output_"+Base64.getEncoder().encodeToString(url.getBytes("utf-8"))+".txt";
+            //     FileWriter output = new FileWriter(STORAGE+fileName);
+            //     Elements cards = doc.getElementsByClass("jobsearch-SerpJobCard unifiedRow row result");
+            //     for(Element card : cards){
+            //         ObjectNode post = JsonNodeFactory.instance.objectNode();
+            //         post.put("id",card.attr("data-jk"));
+    
+            //         Element title = card.getElementsByClass("title").first().getElementsByTag("a").first();
+            //         post.put("title",title.attr("title"));
+            //         post.put("link",title.attr("href"));
+
+            //         Element company = card.getElementsByClass("company").first();
+            //         post.put("company",company.text());
+
+            //         Element loc = card.getElementsByClass("location accessible-contrast-color-location").first();
+            //         post.put("location",loc.text());
+
+            //         Element summary = card.getElementsByClass("summary").first();
+            //         post.put("summary",summary.text());
+
+            //         Element date = card.getElementsByClass("date").first();
+            //         post.put("date",date.text());
+
+            //         output.write(post.toString());
+            //         output.write("\n");
+            //     }
+            //     output.close();
+            // }catch(IOException e){
+            //     e.printStackTrace();
+            // }
         }
     }
 }
