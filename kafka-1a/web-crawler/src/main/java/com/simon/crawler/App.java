@@ -1,9 +1,9 @@
 package com.simon.crawler;
 
-import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 
 public final class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class.getName());
-    private static final Integer NUM_THREADS = 1;
+    private static final Integer NUM_WEBSITES = 1;
     private static final String TOPIC= "test";
-    private static KafkaProducer<String, String> producer;
+    public static KafkaProducer<String, String> producer;
     public static final ArrayBlockingQueue<String> htmls = new ArrayBlockingQueue<>(10);
 
     public static KafkaProducer<String, String>  createProducer(){
@@ -36,44 +36,45 @@ public final class App {
         return producer;
     }
     public static void main(String[] args) 
-    {
+    {   
         producer = createProducer();
-        CountDownLatch latch = new CountDownLatch(NUM_THREADS);
         logger.info("Creating new threads.");
-        ArrayList<RunnableS> runnables = new ArrayList<RunnableS>(2*NUM_THREADS);
-        for (int i=0; i<NUM_THREADS; i++) 
-        {   
-            ProducerRunnable producerRunnable = new ProducerRunnable(TOPIC,htmls,producer);
-            Thread producerThread = new Thread(producerRunnable);
-            CrawlerRunnable crawlerRunnable = new CrawlerRunnable(latch);
-            Thread crawlerThread = new Thread(crawlerRunnable);
-            runnables.add(producerRunnable);
-            runnables.add(crawlerRunnable);
-            producerThread.start();
-            crawlerThread.start(); 
-        } 
+        ProducerRunnable producerRunnable = new ProducerRunnable(TOPIC,htmls,producer);
+        Thread producerThread = new Thread(producerRunnable);
+        producerThread.start();
+
+        // Creating thread pool for repeating crawlers.
+        ExecutorService executor = Executors.newCachedThreadPool();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Caught shutdown hook.");
             try{
-                for(RunnableS runnable : runnables){
-                    runnable.shutdown();
-                }
+                executor.shutdown();
+                producerRunnable.shutdown();
+                producer.close();
                 logger.info("All threads have been shut down.");
             }catch(Exception e){
-                e.printStackTrace();
+                logger.error("Error.",e);
             }finally{
                 logger.info("Application has exited.");
             }
         }
         ));
 
-        try{
-            latch.await();
-        }catch(InterruptedException e){
-            logger.error("Application got interrupted.",e);
-        }finally{
-            logger.info("Application is closing");
+        Integer cycleNum = 0;
+        while(true){
+            for (int i=0; i<NUM_WEBSITES; i++) {   
+            CrawlerRunnable crawlerRunnable = new CrawlerRunnable(cycleNum);
+            executor.execute(crawlerRunnable);
+            }
+            try{
+                logger.info("Crawling Cycle "+cycleNum.toString());
+                Thread.sleep(18000);
+            }catch(InterruptedException e){
+                logger.error("Error.",e);
+            }finally{
+                cycleNum+=1;
+            }
         }
     }
 }

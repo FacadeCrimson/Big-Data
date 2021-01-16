@@ -8,7 +8,7 @@
 
     <logger name="org.apache" level="INFO" />
     <logger name="httpclient" level="INFO" />
-　　　<root level="DEBUG"> 
+　　　<root level="INFO"> 
 　　　　　　<appender-ref ref="STDOUT" /> 
 　　　</root> 
 </configuration>

@@ -16,10 +16,10 @@ import org.jsoup.select.Elements;
 
 public class ProducerRunnable implements RunnableS {
     private static final Logger logger = LoggerFactory.getLogger(ProducerRunnable.class.getName());
+    private volatile boolean running = true;
     private String topic;
     private ArrayBlockingQueue<String> htmls;
     private KafkaProducer<String,String> producer;
-    private String html;
     
     public ProducerRunnable(String topic, ArrayBlockingQueue<String> htmls, KafkaProducer<String,String> producer){
         this.topic = topic;
@@ -29,34 +29,38 @@ public class ProducerRunnable implements RunnableS {
 
     @Override
     public void run(){
-        try{
-            html = htmls.poll(30,TimeUnit.SECONDS);
-        }catch(InterruptedException e){
-            logger.error("Getting html string failed.",e);
-        }
-        if(html!= null){
-            Document doc= Jsoup.parse(html);
-            Elements cards = doc.getElementsByClass("jobsearch-SerpJobCard unifiedRow row result");
-            for(Element card : cards){
-                producer.send(IndeedPlugin.newPost(card,topic), new Callback(){
-                    public void onCompletion(RecordMetadata recordMetadata,Exception e){
-                        if(e!=null){
-                            logger.error("Sending producer record failed.",e);
+        while(running){
+            String html = null;
+            try{
+                html = htmls.poll(30,TimeUnit.SECONDS);
+            }catch(InterruptedException e){
+                logger.error("Getting html string failed.",e);
+            }
+            if(html!= null){
+                Document doc= Jsoup.parse(html);
+                Elements cards = doc.getElementsByClass("jobsearch-SerpJobCard unifiedRow row result");
+                for(Element card : cards){
+                    producer.send(IndeedPlugin.newPost(card,topic), new Callback(){
+                        public void onCompletion(RecordMetadata recordMetadata,Exception e){
+                            if(e!=null){
+                                logger.error("Sending producer record failed.",e);
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
     }
-
+    
+    @Override
     public void shutdown(){
         if(producer != null){
             try{
-                producer.close();
+                running = false;
             }catch(Exception e){
-                logger.info("Error.",e);
+                logger.error("Error.",e);
             }finally{
-                logger.info("Producer shut down.");
+                logger.info("ProducerThread shut down.");
             }
         }
         Thread.currentThread().interrupt();
