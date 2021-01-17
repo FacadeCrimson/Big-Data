@@ -1,7 +1,10 @@
-package com.simon.crawler;
+package com.simon.crawler.Crawler;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import com.simon.crawler.App;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,16 +14,28 @@ import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
 
-public class Crawler extends WebCrawler{
+public class Crawler extends WebCrawler {
     private final static Logger logger = LoggerFactory.getLogger(Crawler.class.getName());
     private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|gif|jpg|png|mp3|mp3|zip|gz))$");
-    private final static String PREFIX = System.getenv("prefix");
+    private ArrayList<String> prefixes;
+
+    public Crawler(ArrayList<String> prefixes) {
+        this.prefixes = prefixes;
+    }
 
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
-        return !FILTERS.matcher(href).matches()
-        && href.startsWith(PREFIX);
+        if (!FILTERS.matcher(href).matches()) {
+            return true;
+        } else {
+            for (String prefix : prefixes) {
+                if (href.startsWith(prefix)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -36,14 +51,14 @@ public class Crawler extends WebCrawler{
             logger.info("Html length: " + html.length());
             logger.info("Number of outgoing links: " + links.size());
 
-            try{
+            try {
                 App.htmls.put(html);
-            }catch(Exception e){
-                logger.error("Adding element to blocking queue fails.",e);
-            }finally{
-                logger.info(url+"   OK");
+            } catch (Exception e) {
+                logger.error("Adding element to blocking queue fails.", e);
+            } finally {
+                logger.info(url + "   OK");
             }
-    
+
         }
     }
 }
