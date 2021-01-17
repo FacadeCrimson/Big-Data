@@ -69,7 +69,7 @@ public final class App {
             }
             try{
                 logger.info("Crawling Cycle "+cycleNum.toString());
-                Thread.sleep(18000);
+                Thread.sleep(30000);
             }catch(InterruptedException e){
                 logger.error("Error.",e);
             }finally{

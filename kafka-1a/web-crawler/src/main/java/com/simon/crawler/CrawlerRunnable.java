@@ -60,15 +60,20 @@ public class CrawlerRunnable implements RunnableS{
         config.setCrawlStorageFolder(CRAWL_STORAGE);
         config.setUserAgentString(USER_AGENT);
         config.setMaxDepthOfCrawling(DEPTH);
-        config.setShutdownOnEmptyQueue(true);
+        config.setThreadMonitoringDelaySeconds(3);
+        // List<Header> headers = Arrays.asList(
+        // new BasicHeader("Accept", "text/html,text/xml"),
+        // new BasicHeader("Accept-Language", "en-gb, en-us, en-uk")
+        // );
+        // config.setDefaultHeaders(headers);
         // config.setIncludeBinaryContentInCrawling(true);
     
-        PageFetcher pageFetcher = new PageFetcher(config);
+        PageFetcherS pageFetcher = new PageFetcherS(config);
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
-    
-        controller.addSeed(System.getenv("testseed"));
+        
+        controller.addSeed(System.getenv("testseed"),5);
 
         return controller;
     }
