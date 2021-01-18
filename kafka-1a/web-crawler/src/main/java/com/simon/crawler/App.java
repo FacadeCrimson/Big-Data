@@ -2,8 +2,7 @@ package com.simon.crawler;
 
 import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CountDownLatch;
 
 import com.simon.crawler.Crawler.CrawlerRunnable;
 
@@ -16,8 +15,9 @@ import org.slf4j.LoggerFactory;
 public final class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class.getName());
     private final AppConfig config;
+    private CountDownLatch latch;
     public KafkaProducer<String, String> producer;
-    public static final ArrayBlockingQueue<String> htmls = new ArrayBlockingQueue<>(10);
+    public static final ArrayBlockingQueue<String> htmls = new ArrayBlockingQueue<>(50);
 
     public App(AppConfig config) {
         try {
@@ -27,6 +27,7 @@ public final class App {
         }
         this.config = config;
         this.producer = createProducer(config.getBootstrapServers());
+        this.latch = new CountDownLatch(2);
     }
 
     public KafkaProducer<String, String> createProducer(String bootstrap_servers) {
@@ -52,20 +53,25 @@ public final class App {
         config.addSeeds(System.getenv("testseed"));
         config.addPrefixes(System.getenv("prefix"));
         App app = new App(config);
-        logger.info("Creating new threads.");
-        ProducerRunnable producerRunnable = new ProducerRunnable(app.producer, htmls, app.config.getTopic());
+
+        logger.info("Creating producer thread.");
+        ProducerRunnable producerRunnable = new ProducerRunnable(app.producer, htmls, app.config.getTopic(), app.latch);
         Thread producerThread = new Thread(producerRunnable);
         producerThread.start();
 
-        // Creating thread pool for repeating crawlers.
-        ExecutorService executor = Executors.newCachedThreadPool();
+        logger.info("Creating crawler thread.");
+        CrawlerRunnable crawlerRunnable = new CrawlerRunnable(config.getCrawlStorage(), config.getSeeds(),
+                config.getPrefixes(), app.latch);
+        Thread crawlThread = new Thread(crawlerRunnable);
+        crawlThread.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Caught shutdown hook.");
             try {
-                executor.shutdown();
+                crawlerRunnable.shutdown();
                 producerRunnable.shutdown();
                 app.producer.close();
+                app.latch.await();
                 logger.info("All threads have been shut down.");
             } catch (Exception e) {
                 logger.error("Error.", e);
@@ -74,19 +80,12 @@ public final class App {
             }
         }));
 
-        Integer cycle_num = 0;
-        while (true) {
-            CrawlerRunnable crawlerRunnable = new CrawlerRunnable(cycle_num, config.getCrawlStorage(),
-                    config.getSeeds(), config.getPrefixes());
-            executor.execute(crawlerRunnable);
-            try {
-                logger.info("Crawling Cycle " + cycle_num.toString());
-                Thread.sleep(30000);
-            } catch (InterruptedException e) {
-                logger.error("Error.", e);
-            } finally {
-                cycle_num += 1;
-            }
+        try {
+            app.latch.await();
+        } catch (InterruptedException e) {
+            logger.error("Application got interrupted", e);
+        } finally {
+            logger.info("Application is closing");
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.simon.crawler;
 
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.simon.crawler.Plugin.IndeedPlugin;
@@ -13,14 +14,17 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 public class ProducerRunnable implements RunnableS {
     private static final Logger logger = LoggerFactory.getLogger(ProducerRunnable.class.getName());
     private volatile boolean running = true;
-    private String topic;
-    private ArrayBlockingQueue<String> htmls;
     private KafkaProducer<String, String> producer;
+    private ArrayBlockingQueue<String> htmls;
+    private String topic;
+    private CountDownLatch latch;
 
-    public ProducerRunnable(KafkaProducer<String, String> producer, ArrayBlockingQueue<String> htmls, String topic) {
+    public ProducerRunnable(KafkaProducer<String, String> producer, ArrayBlockingQueue<String> htmls, String topic,
+            CountDownLatch latch) {
         this.producer = producer;
         this.htmls = htmls;
         this.topic = topic;
+        this.latch = latch;
     }
 
     @Override
@@ -28,9 +32,9 @@ public class ProducerRunnable implements RunnableS {
         while (running) {
             String html = null;
             try {
-                html = htmls.poll(30, TimeUnit.SECONDS);
+                html = htmls.poll(1, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                logger.error("Getting html string failed.", e);
+                logger.error("Interruppted.", e);
             }
             if (html != null) {
                 IndeedPlugin.processHTML(producer, html, topic);
@@ -47,6 +51,7 @@ public class ProducerRunnable implements RunnableS {
                 logger.error("Error.", e);
             } finally {
                 logger.info("ProducerThread shut down.");
+                latch.countDown();
             }
         }
         Thread.currentThread().interrupt();
