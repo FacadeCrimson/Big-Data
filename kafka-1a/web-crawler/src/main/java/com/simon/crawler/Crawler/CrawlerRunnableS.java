@@ -13,22 +13,21 @@ import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
-public class CrawlerRunnable implements RunnableS {
+public class CrawlerRunnableS implements RunnableS {
     private Logger logger = LoggerFactory.getLogger(CrawlerRunnable.class.getName());
     private ArrayList<CrawlController> controller_list = new ArrayList<CrawlController>();
-    private volatile boolean running = true;
     private Integer crawler_num = 0;
     private String crawl_storage;
     private ArrayList<String> seeds;
     private ArrayList<String> prefixes;
     private CountDownLatch latch;
+    private CrawlController controller;
 
-    private static final Integer NUMBER_OF_CRAWLERS = 1;
-    private static final Integer DEPTH = 0;
+    private static final Integer NUMBER_OF_CRAWLERS = 6;
     private static final Integer POLITENESS_DELAY = 500;
     private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36";
 
-    public CrawlerRunnable(String crawl_storage, ArrayList<String> seeds, ArrayList<String> prefixes,
+    public CrawlerRunnableS(String crawl_storage, ArrayList<String> seeds, ArrayList<String> prefixes,
             CountDownLatch latch) {
         this.crawl_storage = crawl_storage;
         this.seeds = seeds;
@@ -38,17 +37,12 @@ public class CrawlerRunnable implements RunnableS {
 
     @Override
     public void run() {
-        while (running) {
-            try {
-                logger.info("Starting crawlers!");
-                CrawlController controller = createController();
-                controller.startNonBlocking(new CrawlerFactory(prefixes), NUMBER_OF_CRAWLERS);
-                controller_list.add(controller);
-                crawler_num += 1;
-                Thread.sleep(15000);
-            } catch (Exception e) {
-                logger.info("Something wrong!");
-            }
+        try {
+            logger.info("Starting crawlers!");
+            controller = createController();
+            controller.startNonBlocking(new CrawlerFactory(prefixes), NUMBER_OF_CRAWLERS);
+        } catch (Exception e) {
+            logger.info("Something wrong!");
         }
     }
 
@@ -56,10 +50,7 @@ public class CrawlerRunnable implements RunnableS {
     public void shutdown() {
         if (controller_list != null) {
             try {
-                running = false;
-                for (CrawlController controller : controller_list) {
-                    controller.shutdown();
-                }
+                controller.shutdown();
             } catch (Exception e) {
                 logger.info("Error.", e);
             } finally {
@@ -77,7 +68,6 @@ public class CrawlerRunnable implements RunnableS {
         config.setIncludeHttpsPages(true);
         config.setPolitenessDelay(POLITENESS_DELAY);
         config.setUserAgentString(USER_AGENT);
-        config.setMaxDepthOfCrawling(DEPTH);
         config.setThreadMonitoringDelaySeconds(3);
         config.setCrawlStorageFolder(crawl_storage_folder);
 
