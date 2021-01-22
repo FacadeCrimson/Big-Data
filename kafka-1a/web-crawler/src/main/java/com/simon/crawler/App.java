@@ -4,7 +4,8 @@ import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 
-import com.simon.crawler.Crawler.CrawlerRunnable;
+// import com.simon.crawler.Crawler.CrawlerRunnable;
+import com.simon.crawler.Crawler.CrawlerRunnableS;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -60,7 +61,12 @@ public final class App {
         producerThread.start();
 
         logger.info("Creating crawler thread.");
-        CrawlerRunnable crawlerRunnable = new CrawlerRunnable(config.getCrawlStorage(), config.getSeeds(),
+        // CrawlerRunnable crawlerRunnable = new
+        // CrawlerRunnable(config.getCrawlStorage(), config.getSeeds(),
+        // config.getPrefixes(), app.latch);
+        // Thread crawlThread = new Thread(crawlerRunnable);
+        // crawlThread.start();
+        CrawlerRunnableS crawlerRunnable = new CrawlerRunnableS(config.getCrawlStorage(), config.getSeeds(),
                 config.getPrefixes(), app.latch);
         Thread crawlThread = new Thread(crawlerRunnable);
         crawlThread.start();

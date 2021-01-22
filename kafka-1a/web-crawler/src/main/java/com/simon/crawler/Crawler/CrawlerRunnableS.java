@@ -22,8 +22,10 @@ public class CrawlerRunnableS implements RunnableS {
     private ArrayList<String> prefixes;
     private CountDownLatch latch;
     private CrawlController controller;
+    private ConsumerRunnable seedRunnable;
 
-    private static final Integer NUMBER_OF_CRAWLERS = 6;
+    private static final Integer NUMBER_OF_CRAWLERS = 1;
+    private static final Integer DEPTH = 0;
     private static final Integer POLITENESS_DELAY = 500;
     private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36";
 
@@ -41,6 +43,9 @@ public class CrawlerRunnableS implements RunnableS {
             logger.info("Starting crawlers!");
             controller = createController();
             controller.startNonBlocking(new CrawlerFactory(prefixes), NUMBER_OF_CRAWLERS);
+            seedRunnable = new ConsumerRunnable(controller, "127.0.0.1:9092", "seedconsumer2", "seeds");
+            Thread seedThread = new Thread(seedRunnable);
+            seedThread.start();
         } catch (Exception e) {
             logger.info("Something wrong!");
         }
@@ -50,6 +55,7 @@ public class CrawlerRunnableS implements RunnableS {
     public void shutdown() {
         if (controller_list != null) {
             try {
+                seedRunnable.shutdown();
                 controller.shutdown();
             } catch (Exception e) {
                 logger.info("Error.", e);
@@ -68,6 +74,7 @@ public class CrawlerRunnableS implements RunnableS {
         config.setIncludeHttpsPages(true);
         config.setPolitenessDelay(POLITENESS_DELAY);
         config.setUserAgentString(USER_AGENT);
+        config.setMaxDepthOfCrawling(DEPTH);
         config.setThreadMonitoringDelaySeconds(3);
         config.setCrawlStorageFolder(crawl_storage_folder);
 

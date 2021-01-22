@@ -25,13 +25,13 @@ import java.util.Properties;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class Deduplication {
-    private static final Logger logger = LoggerFactory.getLogger(Deduplication.class.getName());
+public class Processing {
+    private static final Logger logger = LoggerFactory.getLogger(Processing.class.getName());
 
     /**
      * Constructor
      */
-    private Deduplication() {
+    private Processing() {
     }
 
     /**
@@ -41,13 +41,19 @@ public class Deduplication {
     private static final Deserializer<JsonNode> jsonDeserializer = new JsonDeserializer();
     private static final Serde<JsonNode> jsonSerde = Serdes.serdeFrom(jsonsSerializer, jsonDeserializer);
 
-    public Topology createTopology(RSet<String> rset) {
+    public Topology createTopology(RSet<String> rset, String sourceTopic, String dedupicatedTopic, String seedTopic,
+            String hostName) {
         StreamsBuilder builder = new StreamsBuilder();
 
-        KStream<String, JsonNode> posts = builder.stream("test", Consumed.with(Serdes.String(), jsonSerde))
+        KStream<String, JsonNode> posts = builder.stream(sourceTopic, Consumed.with(Serdes.String(), jsonSerde))
                 .filter((key, value) -> (rset.add(key)));
 
-        posts.to("testoutput", Produced.with(Serdes.String(), jsonSerde));
+        posts.to(dedupicatedTopic, Produced.with(Serdes.String(), jsonSerde));
+
+        KStream<String, String> seedRecord = builder.stream(dedupicatedTopic, Consumed.with(Serdes.String(), jsonSerde))
+                .mapValues((value) -> (hostName + "&vjk=" + value.get("id").asText()));
+
+        seedRecord.to(seedTopic, Produced.with(Serdes.String(), Serdes.String()));
 
         return builder.build();
     }
@@ -57,18 +63,24 @@ public class Deduplication {
      */
     public static void main(String[] args) {
         Properties config = new Properties();
-        config.put(StreamsConfig.APPLICATION_ID_CONFIG, "deduplication");
+        config.put(StreamsConfig.APPLICATION_ID_CONFIG, "deduplication3");
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE);
 
-        Deduplication deduplication = new Deduplication();
+        final String sourceTopic = "test";
+        final String dedupicatedTopic = "testoutput";
+        final String seedTopic = "seeds";
+        final String hostName = System.getenv("testseed");
+
+        Processing deduplication = new Processing();
         RedissonClient redissonClient = deduplication.createClient();
         RSet<String> rset = redissonClient.getSet("keySet");
-        KafkaStreams streams = new KafkaStreams(deduplication.createTopology(rset), config);
+        KafkaStreams streams = new KafkaStreams(
+                deduplication.createTopology(rset, sourceTopic, dedupicatedTopic, seedTopic, hostName), config);
         streams.start();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(()->{
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Caught shutdown hook.");
             try {
                 streams.close();
@@ -79,7 +91,7 @@ public class Deduplication {
             } finally {
                 logger.info("Application has exited.");
             }
-        
+
         }));
     }
 

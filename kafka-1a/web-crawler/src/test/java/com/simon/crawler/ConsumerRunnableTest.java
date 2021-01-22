@@ -2,10 +2,10 @@ package com.simon.crawler;
 
 import org.junit.jupiter.api.Test;
 
-class CrawlerRunnableTest {
+class ConsumerRunnableTest {
     @Test
-    void Test(){
+    void Test() {
 
     }
-    
+
 }
