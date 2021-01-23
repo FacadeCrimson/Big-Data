@@ -26,6 +26,7 @@ public class Crawler extends WebCrawler {
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
+        logger.info("href");
         if (!FILTERS.matcher(href).matches()) {
             return true;
         } else {
@@ -52,7 +53,7 @@ public class Crawler extends WebCrawler {
             logger.info("Number of outgoing links: " + links.size());
 
             try {
-                App.htmls.put(html);
+                App.htmls.put(url+"#####"+html);
             } catch (Exception e) {
                 logger.error("Adding element to blocking queue fails.", e);
             } finally {

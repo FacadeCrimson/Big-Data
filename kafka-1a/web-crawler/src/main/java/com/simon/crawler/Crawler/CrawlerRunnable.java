@@ -15,13 +15,13 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class CrawlerRunnable implements RunnableS {
     private Logger logger = LoggerFactory.getLogger(CrawlerRunnable.class.getName());
-    private ArrayList<CrawlController> controller_list = new ArrayList<CrawlController>();
+    private ArrayList<CrawlController> controller_list;
     private volatile boolean running = true;
-    private Integer crawler_num = 0;
-    private String crawl_storage;
     private ArrayList<String> seeds;
-    private ArrayList<String> prefixes;
     private CountDownLatch latch;
+    private CrawlerFactory crawlerFactory;
+    private String crawl_storage;
+    private Integer crawler_num = 0;
 
     private static final Integer NUMBER_OF_CRAWLERS = 1;
     private static final Integer DEPTH = 0;
@@ -32,20 +32,21 @@ public class CrawlerRunnable implements RunnableS {
             CountDownLatch latch) {
         this.crawl_storage = crawl_storage;
         this.seeds = seeds;
-        this.prefixes = prefixes;
         this.latch = latch;
+        this.controller_list = new ArrayList<CrawlController>();
+        this.crawlerFactory = new CrawlerFactory(prefixes);
     }
 
     @Override
     public void run() {
         while (running) {
             try {
-                logger.info("Starting crawlers!");
+                logger.info("Starting periodic crawler!");
                 CrawlController controller = createController();
-                controller.startNonBlocking(new CrawlerFactory(prefixes), NUMBER_OF_CRAWLERS);
+                controller.startNonBlocking(crawlerFactory, NUMBER_OF_CRAWLERS);
                 controller_list.add(controller);
                 crawler_num += 1;
-                Thread.sleep(15000);
+                Thread.sleep(20000);
             } catch (Exception e) {
                 logger.info("Something wrong!");
             }
@@ -73,13 +74,14 @@ public class CrawlerRunnable implements RunnableS {
 
     private CrawlController createController() throws Exception {
         CrawlConfig config = new CrawlConfig();
-        String crawl_storage_folder = crawl_storage + "/" + crawler_num.toString() + "/";
         config.setIncludeHttpsPages(true);
         config.setPolitenessDelay(POLITENESS_DELAY);
         config.setUserAgentString(USER_AGENT);
         config.setMaxDepthOfCrawling(DEPTH);
-        config.setThreadMonitoringDelaySeconds(3);
-        config.setCrawlStorageFolder(crawl_storage_folder);
+        config.setCrawlStorageFolder(crawl_storage + "/periodic/" + crawler_num.toString() + "/");
+        config.setThreadMonitoringDelaySeconds(5);
+        config.setThreadShutdownDelaySeconds(5);
+        config.setCleanupDelaySeconds(5);
 
         PageFetcherS pageFetcher = new PageFetcherS(config);
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();

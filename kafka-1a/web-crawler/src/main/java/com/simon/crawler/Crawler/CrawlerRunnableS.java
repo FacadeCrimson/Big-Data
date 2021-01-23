@@ -15,37 +15,38 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class CrawlerRunnableS implements RunnableS {
     private Logger logger = LoggerFactory.getLogger(CrawlerRunnable.class.getName());
-    private ArrayList<CrawlController> controller_list = new ArrayList<CrawlController>();
-    private Integer crawler_num = 0;
     private String crawl_storage;
-    private ArrayList<String> seeds;
     private ArrayList<String> prefixes;
     private CountDownLatch latch;
     private CrawlController controller;
-    private ConsumerRunnable seedRunnable;
+    private ConsumerRunnable consumerRunnable;
+    private String bootstrap_servers;
+    private String seed_topic = "seeds";
+    private String consumer_group = "seedconsumer5";
 
     private static final Integer NUMBER_OF_CRAWLERS = 1;
     private static final Integer DEPTH = 0;
     private static final Integer POLITENESS_DELAY = 500;
     private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36";
 
-    public CrawlerRunnableS(String crawl_storage, ArrayList<String> seeds, ArrayList<String> prefixes,
-            CountDownLatch latch) {
+    public CrawlerRunnableS(String crawl_storage, ArrayList<String> prefixes, CountDownLatch latch,
+            String bootstrap_servers) {
         this.crawl_storage = crawl_storage;
-        this.seeds = seeds;
         this.prefixes = prefixes;
         this.latch = latch;
+        this.bootstrap_servers = bootstrap_servers;
     }
 
     @Override
     public void run() {
         try {
-            logger.info("Starting crawlers!");
+            logger.info("Starting consumer crawlers!");
             controller = createController();
-            controller.startNonBlocking(new CrawlerFactory(prefixes), NUMBER_OF_CRAWLERS);
-            seedRunnable = new ConsumerRunnable(controller, "127.0.0.1:9092", "seedconsumer2", "seeds");
-            Thread seedThread = new Thread(seedRunnable);
-            seedThread.start();
+            consumerRunnable = new ConsumerRunnable(controller, bootstrap_servers, consumer_group, seed_topic);
+            Thread consumerThread = new Thread(consumerRunnable);
+            consumerThread.start();
+            controller.addSeed("https://www.indeed.com/jobs?q=analyst&sort=date&vjk=47f5ee8b29b61c98");
+            controller.start(new CrawlerFactory(prefixes), NUMBER_OF_CRAWLERS);
         } catch (Exception e) {
             logger.info("Something wrong!");
         }
@@ -53,9 +54,9 @@ public class CrawlerRunnableS implements RunnableS {
 
     @Override
     public void shutdown() {
-        if (controller_list != null) {
+        if (controller != null) {
             try {
-                seedRunnable.shutdown();
+                consumerRunnable.shutdown();
                 controller.shutdown();
             } catch (Exception e) {
                 logger.info("Error.", e);
@@ -70,22 +71,20 @@ public class CrawlerRunnableS implements RunnableS {
 
     private CrawlController createController() throws Exception {
         CrawlConfig config = new CrawlConfig();
-        String crawl_storage_folder = crawl_storage + "/" + crawler_num.toString() + "/";
         config.setIncludeHttpsPages(true);
         config.setPolitenessDelay(POLITENESS_DELAY);
         config.setUserAgentString(USER_AGENT);
         config.setMaxDepthOfCrawling(DEPTH);
-        config.setThreadMonitoringDelaySeconds(3);
-        config.setCrawlStorageFolder(crawl_storage_folder);
+        config.setCrawlStorageFolder(crawl_storage + "/consumer/");
+        config.setThreadMonitoringDelaySeconds(5);
+        config.setThreadShutdownDelaySeconds(5);
+        config.setCleanupDelaySeconds(5);
 
         PageFetcherS pageFetcher = new PageFetcherS(config);
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
-        for (String seed : seeds) {
-            controller.addSeed(seed);
-        }
         return controller;
     }
 

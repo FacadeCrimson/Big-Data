@@ -2,9 +2,9 @@ package com.simon.crawler;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import com.simon.crawler.Plugin.IndeedPlugin;
+import com.simon.crawler.Plugin.IndeedPlugin2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +32,17 @@ public class ProducerRunnable implements RunnableS {
         while (running) {
             String html = null;
             try {
-                html = htmls.poll(1, TimeUnit.SECONDS);
+                html = htmls.take();
             } catch (InterruptedException e) {
                 logger.error("Interruppted.", e);
             }
             if (html != null) {
-                IndeedPlugin.processHTML(producer, html, topic);
+                String[] splitted = html.split("#####", 2);
+                if (splitted[0].split("vjk=").length > 1) {
+                    IndeedPlugin2.processHTML(producer, splitted[0], topic);
+                }else{
+                    IndeedPlugin.processHTML(producer, splitted[1], topic);
+                }
             }
         }
     }

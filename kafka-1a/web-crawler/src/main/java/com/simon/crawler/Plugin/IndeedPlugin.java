@@ -25,6 +25,7 @@ public class IndeedPlugin {
                 }
             });
         }
+        
     }
 
     public static ProducerRecord<String, String> newPost(Element card, String topic) {

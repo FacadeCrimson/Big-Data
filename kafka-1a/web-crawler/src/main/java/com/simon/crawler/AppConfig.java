@@ -46,7 +46,7 @@ public class AppConfig {
             throw new Exception("Directory doesn't exist.");
         }
         if (seeds == null) {
-            throw new Exception("Please add least one seed.");
+            throw new Exception("Please add at least one seed.");
         }
     }
 

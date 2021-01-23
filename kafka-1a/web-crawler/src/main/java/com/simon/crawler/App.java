@@ -4,7 +4,7 @@ import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 
-// import com.simon.crawler.Crawler.CrawlerRunnable;
+import com.simon.crawler.Crawler.CrawlerRunnable;
 import com.simon.crawler.Crawler.CrawlerRunnableS;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -28,7 +28,7 @@ public final class App {
         }
         this.config = config;
         this.producer = createProducer(config.getBootstrapServers());
-        this.latch = new CountDownLatch(2);
+        this.latch = new CountDownLatch(3);
     }
 
     public KafkaProducer<String, String> createProducer(String bootstrap_servers) {
@@ -60,20 +60,22 @@ public final class App {
         Thread producerThread = new Thread(producerRunnable);
         producerThread.start();
 
-        logger.info("Creating crawler thread.");
-        // CrawlerRunnable crawlerRunnable = new
-        // CrawlerRunnable(config.getCrawlStorage(), config.getSeeds(),
-        // config.getPrefixes(), app.latch);
-        // Thread crawlThread = new Thread(crawlerRunnable);
-        // crawlThread.start();
-        CrawlerRunnableS crawlerRunnable = new CrawlerRunnableS(config.getCrawlStorage(), config.getSeeds(),
-                config.getPrefixes(), app.latch);
+        // logger.info("Creating periodic crawler thread.");
+        // CrawlerRunnable crawlerPeriodicRunnable = new CrawlerRunnable(config.getCrawlStorage(), config.getSeeds(),
+        //         config.getPrefixes(), app.latch);
+        // Thread crawlPeriodicThread = new Thread(crawlerPeriodicRunnable);
+        // crawlPeriodicThread.start();
+
+        logger.info("Creating consumer crawler threads.");
+        CrawlerRunnableS crawlerRunnable = new CrawlerRunnableS(config.getCrawlStorage(),
+                config.getPrefixes(), app.latch, config.getBootstrapServers());
         Thread crawlThread = new Thread(crawlerRunnable);
         crawlThread.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Caught shutdown hook.");
             try {
+                // crawlerPeriodicRunnable.shutdown();
                 crawlerRunnable.shutdown();
                 producerRunnable.shutdown();
                 app.producer.close();
