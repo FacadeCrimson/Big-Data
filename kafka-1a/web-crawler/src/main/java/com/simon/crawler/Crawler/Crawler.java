@@ -53,7 +53,7 @@ public class Crawler extends WebCrawler {
             logger.info("Number of outgoing links: " + links.size());
 
             try {
-                App.htmls.put(url+"#####"+html);
+                App.htmls.put(url + "#####" + html);
             } catch (Exception e) {
                 logger.error("Adding element to blocking queue fails.", e);
             } finally {

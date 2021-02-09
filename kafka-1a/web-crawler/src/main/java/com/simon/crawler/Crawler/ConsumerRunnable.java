@@ -34,7 +34,7 @@ public class ConsumerRunnable implements RunnableS {
         try {
             while (running) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(5000));
-                logger.info("Received "+records.count()+" records");
+                logger.info("Received " + records.count() + " records");
 
                 for (ConsumerRecord<String, String> record : records) {
                     logger.info("Key: " + record.key() + ", Value: " + record.value());

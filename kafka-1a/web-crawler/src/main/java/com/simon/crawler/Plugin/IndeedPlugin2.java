@@ -18,8 +18,8 @@ public class IndeedPlugin2 {
         dr.manage().window().maximize();
 
         dr.get(url);
-        List<WebElement> elements= dr.findElements(By.tagName("iframe"));
-        for (WebElement element : elements){
+        List<WebElement> elements = dr.findElements(By.tagName("iframe"));
+        for (WebElement element : elements) {
             System.out.println(element.getAttribute("id"));
         }
         dr.switchTo().frame(0);

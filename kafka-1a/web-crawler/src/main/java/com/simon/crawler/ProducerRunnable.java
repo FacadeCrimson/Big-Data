@@ -40,7 +40,7 @@ public class ProducerRunnable implements RunnableS {
                 String[] splitted = html.split("#####", 2);
                 if (splitted[0].split("vjk=").length > 1) {
                     IndeedPlugin2.processHTML(producer, splitted[0], topic);
-                }else{
+                } else {
                     IndeedPlugin.processHTML(producer, splitted[1], topic);
                 }
             }

@@ -61,14 +61,15 @@ public final class App {
         producerThread.start();
 
         // logger.info("Creating periodic crawler thread.");
-        // CrawlerRunnable crawlerPeriodicRunnable = new CrawlerRunnable(config.getCrawlStorage(), config.getSeeds(),
-        //         config.getPrefixes(), app.latch);
+        // CrawlerRunnable crawlerPeriodicRunnable = new
+        // CrawlerRunnable(config.getCrawlStorage(), config.getSeeds(),
+        // config.getPrefixes(), app.latch);
         // Thread crawlPeriodicThread = new Thread(crawlerPeriodicRunnable);
         // crawlPeriodicThread.start();
 
         logger.info("Creating consumer crawler threads.");
-        CrawlerRunnableS crawlerRunnable = new CrawlerRunnableS(config.getCrawlStorage(),
-                config.getPrefixes(), app.latch, config.getBootstrapServers());
+        CrawlerRunnableS crawlerRunnable = new CrawlerRunnableS(config.getCrawlStorage(), config.getPrefixes(),
+                app.latch, config.getBootstrapServers());
         Thread crawlThread = new Thread(crawlerRunnable);
         crawlThread.start();
 
